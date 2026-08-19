@@ -1,0 +1,106 @@
+// Prisma schema — mirrors db/schema.sql 1:1.
+// Money fields use Decimal @db.Decimal(12,2) (never Float).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum AccountType {
+  cash
+  bank
+  e_wallet @map("e-wallet")
+}
+
+enum CategoryType {
+  income
+  expense
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      Role     @default(user)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  accounts Account[]
+  budgets  Budget[]
+
+  @@map("users")
+}
+
+model Account {
+  id        Int         @id @default(autoincrement())
+  userId    Int         @map("user_id")
+  name      String      @db.VarChar(100)
+  type      AccountType
+  balance   Decimal     @default(0) @db.Decimal(12, 2)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Category {
+  id   Int          @id @default(autoincrement())
+  name String       @db.VarChar(100)
+  type CategoryType
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id              Int             @id @default(autoincrement())
+  accountId       Int             @map("account_id")
+  categoryId      Int             @map("category_id")
+  type            TransactionType
+  amount          Decimal         @db.Decimal(12, 2)
+  description     String?         @db.Text
+  transactionDate DateTime        @map("transaction_date") @db.Date
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([transactionDate])
+  @@map("transactions")
+}
+
+model Budget {
+  id          Int     @id @default(autoincrement())
+  userId      Int     @map("user_id")
+  categoryId  Int     @map("category_id")
+  month       String  @db.VarChar(7)
+  limitAmount Decimal @map("limit_amount") @db.Decimal(12, 2)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month])
+  @@map("budgets")
+}

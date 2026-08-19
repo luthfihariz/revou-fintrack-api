@@ -1,0 +1,44 @@
+// FinTrack ERD — paste into https://dbdiagram.io to render and export erd.png.
+
+Table users {
+  id         int [pk, increment]
+  name       varchar
+  email      varchar [unique]
+  password   varchar [note: 'bcrypt hash']
+  role       varchar [note: "'user' | 'admin'"]
+  created_at timestamp
+}
+
+Table accounts {
+  id         int [pk, increment]
+  user_id    int [ref: > users.id]
+  name       varchar
+  type       varchar [note: "'cash' | 'bank' | 'e-wallet'"]
+  balance    decimal [note: 'NUMERIC(12,2) running balance']
+  created_at timestamp
+}
+
+Table categories {
+  id   int [pk, increment]
+  name varchar
+  type varchar [note: "'income' | 'expense'"]
+}
+
+Table transactions {
+  id               int [pk, increment]
+  account_id       int [ref: > accounts.id]
+  category_id      int [ref: > categories.id]
+  type             varchar [note: "'income' | 'expense' | 'transfer'"]
+  amount           decimal [note: 'NUMERIC(12,2)']
+  description      text
+  transaction_date date
+  created_at       timestamp
+}
+
+Table budgets {
+  id           int [pk, increment]
+  user_id      int [ref: > users.id]
+  category_id  int [ref: > categories.id]
+  month        varchar [note: "'YYYY-MM'"]
+  limit_amount decimal
+}
