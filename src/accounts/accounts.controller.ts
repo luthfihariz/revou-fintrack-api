@@ -36,11 +36,6 @@ export class AccountsController {
     return this.accountsService.findOne(userId, id);
   }
 
-  @Get(':id/transactions')
-  findTransactions(@CurrentUser('id') userId: number, @Param('id', ParseIntPipe) id: number) {
-    return this.accountsService.findTransactions(userId, id);
-  }
-
   @Patch(':id')
   update(
     @CurrentUser('id') userId: number,
