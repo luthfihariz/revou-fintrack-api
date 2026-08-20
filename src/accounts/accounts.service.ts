@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto } from './dto/create-account.dto';
+import { UpdateBalanceDto } from './dto/update-balance.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 
 @Injectable()
@@ -53,6 +54,14 @@ export class AccountsService {
     });
   }
 
+  async updateBalance(userId: number, id: number, dto: UpdateBalanceDto) {
+    await this.getOwned(userId, id);
+    return this.prisma.account.update({
+      where: { id },
+      data: { balance: dto.balance },
+    });
+  }
+
   async remove(userId: number, id: number) {
     await this.getOwned(userId, id);
     await this.prisma.account.delete({ where: { id } });
@@ -74,5 +83,12 @@ export class AccountsService {
   private mapType(type: 'cash' | 'bank' | 'e-wallet') {
     // Prisma enum uses e_wallet mapped to the DB value 'e-wallet'.
     return type === 'e-wallet' ? 'e_wallet' : type;
+  }
+
+  // Return accounts with balance below a threshold
+  async findLowBalance(threshold: number) {
+    return this.prisma.account.findMany({
+      where: { balance: { lt: threshold } },
+    });
   }
 }
