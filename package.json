@@ -18,7 +18,7 @@
     "prisma:deploy:test": "dotenv -e .env.test -- prisma migrate deploy",
     "db:seed": "prisma db seed",
     "test": "jest",
-    "test:e2e": "dotenv -e .env.test -- jest --config ./test/jest-e2e.json --runInBand"
+    "test:e2e": "dotenv -e .env.test --ignore -- jest --config ./test/jest-e2e.json --runInBand"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
