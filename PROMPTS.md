@@ -1,7 +1,7 @@
-## W25D2
+# W25D2
 
 
-### Spec: Category Budgets
+## Spec: Category Budgets
 A Budget belongs to one Category and one User (the owner).
 
 Fields: id, month (integer, 1 to 12 inclusive), year (integer), limitAmount (decimal, greater than 0), categoryId, userId.
@@ -10,6 +10,7 @@ POST /budgets — any logged-in user creates a budget for one of their categorie
 GET /budgets — logged-in only, lists the caller’s own budgets.
 DELETE /budgets/:id — only the budget’s owner may delete it.
 
+## PROMPT START HERE
 Create Schema
 Create src/budgets/dto/create-budget.dto.ts with class-validator decorators: month must be an integer between 1 and 12 inclusive (@IsInt(), @Min(1), @Max(12)), year must be a positive integer (@IsInt(), @Min(2000)), limitAmount must be a number greater than 0 (@IsNumber(), @IsPositive()). Follow the decorator import style in src/accounts/dto/create-account.dto.ts.
 
@@ -33,3 +34,10 @@ GET /budgets — logged-in only, lists the caller’s own budgets.
 DELETE /budgets/:id — only the budget’s owner may delete it.
 
 no tests required for now
+
+## Github Copilot Instructions 
+
+Onboard this repository to Copilot cloud agent by adding a
+.github/copilot-instructions.md file. Include information about project
+structure, coding conventions, the test framework, and how to build and
+run the project.
