@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fintrack_test
 
     services:
       postgres:
@@ -24,12 +26,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fintrack_test
       - run: npm test
+      - run: psql "$DATABASE_URL" -f db/seed.sql
       - run: npm run test:e2e
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fintrack_test
           JWT_SECRET: ci-test-secret
           JWT_EXPIRES_IN: 1d
           PORT: 3001

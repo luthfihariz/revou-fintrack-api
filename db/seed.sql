@@ -67,11 +67,3 @@ INSERT INTO transactions (account_id, category_id, type, amount, description, tr
     (5, 2, 'income',  1200000.00, 'Content writing',         '2026-02-14'),
     (6, 5, 'expense', 95000.00,   'Family dinner',           '2026-02-20'),
     (6, 3, 'expense', 260000.00,  'Monthly groceries',       '2026-02-22');
-
--- ----------------------------------------------------------------------------
--- budgets  (optional stretch goal sample)
--- ----------------------------------------------------------------------------
-INSERT INTO budgets (user_id, category_id, month, limit_amount) VALUES
-    (1, 3, '2026-02', 1000000.00),
-    (2, 5, '2026-02', 500000.00),
-    (3, 3, '2026-02', 600000.00);
