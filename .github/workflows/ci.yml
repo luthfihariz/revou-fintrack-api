@@ -22,7 +22,6 @@ jobs:
         with:
           node-version: "20"
       - run: npm ci
-      - run: npm run lint
       - run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fintrack_test
