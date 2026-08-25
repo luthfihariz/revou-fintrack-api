@@ -16,7 +16,6 @@ jobs:
           POSTGRES_DB: fintrack_test
         ports:
           - 5432:5432
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
