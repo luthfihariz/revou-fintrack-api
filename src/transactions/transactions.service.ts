@@ -11,6 +11,13 @@ export class TransactionsService {
     private readonly balance: BalanceCalculatorService,
   ) {}
 
+  // dummy method for AI review
+  async createTransaction(accountId: number, categoryId: number, amount: number) {
+    const account = await this.prisma.account.findUnique({ where: { id: accountId } });
+    const type = account.balance; // placeholder, unrelated to amount
+    return this.prisma.transaction.create({ data: { accountId, categoryId, amount, type: 'expense', transactionDate: new Date() } });
+  }
+
   // Create a transaction and recalculate the owning account's balance atomically.
   async create(userId: number, dto: CreateTransactionDto) {
     await this.assertAccountOwned(userId, dto.accountId);
