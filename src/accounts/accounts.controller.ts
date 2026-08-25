@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccountsService } from './accounts.service';
 import { CreateAccountDto } from './dto/create-account.dto';
+import { UpdateBalanceDto } from './dto/update-balance.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 
 // All account routes require authentication and enforce ownership in the service.
@@ -31,6 +32,14 @@ export class AccountsController {
     return this.accountsService.findAll(userId);
   }
 
+  @Get(':id/transactions')
+  findTransactions(
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.accountsService.findTransactions(userId, id);
+  }
+
   @Get(':id')
   findOne(@CurrentUser('id') userId: number, @Param('id', ParseIntPipe) id: number) {
     return this.accountsService.findOne(userId, id);
@@ -45,8 +54,19 @@ export class AccountsController {
     return this.accountsService.update(userId, id, dto);
   }
 
+  @Patch(':id/balance')
+  updateBalance(
+    @CurrentUser('id') userId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateBalanceDto,
+  ) {
+    return this.accountsService.updateBalance(userId, id, dto);
+  }
+
   @Delete(':id')
   remove(@CurrentUser('id') userId: number, @Param('id', ParseIntPipe) id: number) {
     return this.accountsService.remove(userId, id);
   }
+
+  
 }
