@@ -41,7 +41,6 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
 
   accounts Account[]
-  budgets  Budget[]
 
   @@map("users")
 }
@@ -67,7 +66,6 @@ model Category {
   type CategoryType
 
   transactions Transaction[]
-  budgets      Budget[]
 
   @@map("categories")
 }
@@ -89,18 +87,4 @@ model Transaction {
   @@index([categoryId])
   @@index([transactionDate])
   @@map("transactions")
-}
-
-model Budget {
-  id          Int     @id @default(autoincrement())
-  userId      Int     @map("user_id")
-  categoryId  Int     @map("category_id")
-  month       String  @db.VarChar(7)
-  limitAmount Decimal @map("limit_amount") @db.Decimal(12, 2)
-
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, categoryId, month])
-  @@map("budgets")
 }
