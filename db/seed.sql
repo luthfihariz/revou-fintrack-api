@@ -13,7 +13,8 @@ TRUNCATE TABLE budgets, transactions, categories, accounts, users RESTART IDENTI
 INSERT INTO users (name, email, password, role) VALUES
     ('Alice Rahman', 'alice@fintrack.dev', '$2b$10$K7L1OJ0/9Z0Zp0m9Q3q3ne0m1oQ8mF1z1r6yqJd5g6b7c8d9e0f1', 'admin'),
     ('Budi Santoso', 'budi@fintrack.dev',  '$2b$10$K7L1OJ0/9Z0Zp0m9Q3q3ne0m1oQ8mF1z1r6yqJd5g6b7c8d9e0f1', 'user'),
-    ('Citra Dewi',   'citra@fintrack.dev', '$2b$10$K7L1OJ0/9Z0Zp0m9Q3q3ne0m1oQ8mF1z1r6yqJd5g6b7c8d9e0f1', 'user');
+    ('Citra Dewi',   'citra@fintrack.dev', '$2b$10$K7L1OJ0/9Z0Zp0m9Q3q3ne0m1oQ8mF1z1r6yqJd5g6b7c8d9e0f1', 'user'),
+    ('Luthfi Hariz', 'luthfi@fintrack.dev', '$2b$10$K7L1OJ0/9Z0Zp0m9Q3q3ne0m1oQ8mF1z1r6yqJd5g6b7c8d9e0f1', 'user');
 
 -- ----------------------------------------------------------------------------
 -- accounts  (2 per user)
@@ -24,7 +25,9 @@ INSERT INTO accounts (user_id, name, type, balance) VALUES
     (2, 'Budi Wallet',       'e-wallet', 250000.00),
     (2, 'Budi Mandiri',      'bank',     3200000.00),
     (3, 'Citra GoPay',       'e-wallet', 150000.00),
-    (3, 'Citra Cash',        'cash',     800000.00);
+    (3, 'Citra Cash',        'cash',     800000.00),
+    (4, 'Luthfi BRI',        'bank',     1000000.00),
+    (4, 'Luthfi OVO',        'e-wallet', 500000.00);
 
 -- ----------------------------------------------------------------------------
 -- categories  (mix of income & expense)
@@ -68,10 +71,3 @@ INSERT INTO transactions (account_id, category_id, type, amount, description, tr
     (6, 5, 'expense', 95000.00,   'Family dinner',           '2026-02-20'),
     (6, 3, 'expense', 260000.00,  'Monthly groceries',       '2026-02-22');
 
--- ----------------------------------------------------------------------------
--- budgets  (optional stretch goal sample)
--- ----------------------------------------------------------------------------
-INSERT INTO budgets (user_id, category_id, month, limit_amount) VALUES
-    (1, 3, '2026-02', 1000000.00),
-    (2, 5, '2026-02', 500000.00),
-    (3, 3, '2026-02', 600000.00);
