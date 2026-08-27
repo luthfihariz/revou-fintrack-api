@@ -41,6 +41,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
 
   accounts Account[]
+  budgets  Budget[]
 
   @@map("users")
 }
@@ -66,8 +67,21 @@ model Category {
   type CategoryType
 
   transactions Transaction[]
+  budgets      Budget[]
 
   @@map("categories")
+}
+
+model Budget {
+  id          Int     @id @default(autoincrement())
+  month       Int
+  year        Int
+  limitAmount Decimal @db.Decimal(12, 2)
+  categoryId  Int     @map("category_id")
+  userId      Int     @map("user_id")
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {
