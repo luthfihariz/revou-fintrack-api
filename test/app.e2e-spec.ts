@@ -28,6 +28,13 @@ describe("App (e2e)", () => {
     await app.close();
   });
 
+  it("returns 200 from the health check", () => {
+    return request(app.getHttpServer())
+      .get("/health")
+      .expect(200)
+      .expect({ status: "ok" });
+  });
+
   it("rejects unauthenticated requests to protected routes", () => {
     return request(app.getHttpServer()).get("/categories").expect(401);
   });
