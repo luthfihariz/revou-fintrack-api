@@ -29,4 +29,10 @@ Phase 3: First Supertest Test
 Do not import main.ts, since it starts a real HTTP listener.
 
 ## Prompting E2e budgets test
-Write e2e tests for POST /budgets covering the happy path and common error responses.
+Write e2e tests for POST /budgets covering the happy path and common error responses. Make sure to seed the necessary category and user first.
+
+Write e2e tests for DELETE /budgets covering both path as well.
+
+Write e2e tests for POST /transactions.
+
+Instead of calling an actuall HTTP when seeding beforeAll tests cases run, use Prisma seeding directly and clean up the data after it runs, at afterAll hooks.
