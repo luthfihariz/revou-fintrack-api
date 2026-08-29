@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 
@@ -7,6 +12,10 @@ export class BudgetsService {
 	constructor(private readonly prisma: PrismaService) {}
 
 	async create(userId: number, dto: CreateBudgetDto) {
+		if (dto.month < 1 || dto.month > 12) {
+			throw new BadRequestException('Month must be between 1 and 12');
+		}
+
 		const category = await this.prisma.category.findUnique({
 			where: { id: dto.categoryId },
 		});
