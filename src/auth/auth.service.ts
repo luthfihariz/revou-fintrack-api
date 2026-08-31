@@ -47,7 +47,7 @@ export class AuthService {
 
   // Never leak the password hash in any response.
   private sanitize<T extends { password?: string }>(user: T) {
-    const { password, ...rest } = user;
+    const { ...rest } = user;
     return rest;
   }
 }
