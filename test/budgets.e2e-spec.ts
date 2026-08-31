@@ -80,6 +80,80 @@ describe("Budgets (e2e)", () => {
     });
   });
 
+  it("deletes a budget owned by the current user", async () => {
+    const payload = {
+      month: 9,
+      year: 2026,
+      limitAmount: 1500,
+      categoryId,
+    };
+
+    const createResponse = await request(app.getHttpServer())
+      .post("/budgets")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send(payload)
+      .expect(201);
+
+    const budgetId = createResponse.body.id;
+
+    const response = await request(app.getHttpServer())
+      .delete(`/budgets/${budgetId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(response.body).toEqual({ deleted: true, id: budgetId });
+
+    const listResponse = await request(app.getHttpServer())
+      .get("/budgets")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(listResponse.body.some((budget) => budget.id === budgetId)).toBe(false);
+  });
+
+  it("returns 404 when deleting a budget that does not exist", async () => {
+    const response = await request(app.getHttpServer())
+      .delete("/budgets/999999")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(404);
+
+    expect(response.body.message).toContain("Budget 999999 not found");
+  });
+
+  it("returns 403 when deleting a budget owned by another user", async () => {
+    const otherUserEmail = `otheruser_${Date.now()}@example.com`;
+    const otherUserResponse = await request(app.getHttpServer())
+      .post("/auth/register")
+      .send({
+        email: otherUserEmail,
+        password: "Password123!",
+        name: "Other User",
+      })
+      .expect(201);
+
+    const otherAccessToken = otherUserResponse.body.access_token;
+
+    const createResponse = await request(app.getHttpServer())
+      .post("/budgets")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        month: 10,
+        year: 2026,
+        limitAmount: 2000,
+        categoryId,
+      })
+      .expect(201);
+
+    const budgetId = createResponse.body.id;
+
+    const response = await request(app.getHttpServer())
+      .delete(`/budgets/${budgetId}`)
+      .set("Authorization", `Bearer ${otherAccessToken}`)
+      .expect(403);
+
+    expect(response.body.message).toBe("You do not own this budget");
+  });
+
   it("rejects unauthenticated requests", async () => {
     await request(app.getHttpServer())
       .post("/budgets")
