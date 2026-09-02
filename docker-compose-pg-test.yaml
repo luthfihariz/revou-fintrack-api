@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5430:5432"
+    environment:
+      POSTGRES_DB: "fintrack-test-db"
+      POSTGRES_USER: "fintrack"
+      POSTGRES_PASSWORD: "fintrack123"
+    volumes:
+      - postgres17-data:/var/lib/postgresql/data
+    restart: unless-stopped  
+
+volumes:
+  postgres17-data:
+
