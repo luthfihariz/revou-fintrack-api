@@ -28,6 +28,11 @@ export class BudgetsController {
 		return this.budgetsService.findAllBudget(userId);
 	}
 
+	@Get('insight')
+	findInsights(@CurrentUser('id') userId: number) {
+		return this.budgetsService.findBudgetInsights(userId);
+	}
+
 	@Delete(':id')
 	remove(@CurrentUser('id') userId: number, @Param('id', ParseIntPipe) id: number) {
 		return this.budgetsService.remove(userId, id);

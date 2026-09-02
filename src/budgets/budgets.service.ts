@@ -4,8 +4,10 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget-dto';
+import { BudgetInsightDto } from './dto/budget-insight.dto';
 
 @Injectable()
 export class BudgetsService {
@@ -42,6 +44,60 @@ export class BudgetsService {
 			where: { userId },
 			include: { category: true },
 		});
+	}
+
+	async findBudgetInsights(userId: number) {
+		const now = new Date();
+		const currentMonth = now.getMonth() + 1;
+		const currentYear = now.getFullYear();
+
+		// Get all budgets for the current month/year
+		const budgets = await this.prisma.budget.findMany({
+			where: {
+				userId,
+				month: currentMonth,
+				year: currentYear,
+			},
+			include: { category: true },
+		});
+
+		// For each budget, calculate spent amount and usage metrics
+		const insights: BudgetInsightDto[] = [];
+
+		for (const budget of budgets) {
+			// Sum all income and expense transactions for this budget's category
+			// that fall within the current month/year
+			const transactionSum = await this.prisma.transaction.aggregate({
+				where: {
+					categoryId: budget.categoryId,
+					type: { in: ['income', 'expense'] },
+					transactionDate: {
+						gte: new Date(currentYear, currentMonth - 1, 1),
+						lte: new Date(currentYear, currentMonth, 0),
+					},
+					// Ensure transaction belongs to user's account
+					account: {
+						userId,
+					},
+				},
+				_sum: { amount: true },
+			});
+
+			const spent = new Prisma.Decimal(transactionSum._sum.amount ?? 0);
+			const remaining = budget.limitAmount.minus(spent);
+			const usagePercentage = budget.limitAmount.toNumber() > 0
+				? (spent.toNumber() / budget.limitAmount.toNumber()) * 100
+				: 0;
+
+			insights.push({
+				...budget,
+				spent,
+				remaining,
+				usagePercentage,
+			});
+		}
+
+		return insights;
 	}
 
 	async remove(userId: number, id: number) {

@@ -1,13 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { BudgetsService } from './budgets.service';
 
 describe('BudgetsService', () => {
   let service: BudgetsService;
-  const prisma = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const prisma: any = {
     category: { findUnique: jest.fn() },
-    budget: { create: jest.fn(), findUnique: jest.fn(), delete: jest.fn() },
+    budget: { create: jest.fn(), findUnique: jest.fn(), delete: jest.fn(), findMany: jest.fn() },
+    transaction: { aggregate: jest.fn() },
   };
 
   beforeEach(async () => {
@@ -112,5 +115,164 @@ describe('BudgetsService', () => {
     await expect(service.remove(7, 1)).rejects.toThrow('You do not own this budget');
 
     expect(prisma.budget.delete).not.toHaveBeenCalled();
+  });
+
+  describe('findBudgetInsights', () => {
+    it('should return insights for all budgets with correct calculations', async () => {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const mockBudgets = [
+        {
+          id: 1,
+          month: currentMonth,
+          year: currentYear,
+          limitAmount: new Prisma.Decimal(5000),
+          categoryId: 10,
+          userId: 7,
+          category: { id: 10, name: 'Travel', type: 'expense' },
+        },
+        {
+          id: 2,
+          month: currentMonth,
+          year: currentYear,
+          limitAmount: new Prisma.Decimal(1000),
+          categoryId: 11,
+          userId: 7,
+          category: { id: 11, name: 'Food', type: 'expense' },
+        },
+      ];
+
+      prisma.budget.findMany.mockResolvedValue(mockBudgets);
+
+      // Mock transaction aggregates for each budget
+      // Budget 1: spent 4000 (80%)
+      prisma.transaction.aggregate
+        .mockResolvedValueOnce({ _sum: { amount: new Prisma.Decimal(4000) } })
+        // Budget 2: spent 500 (50%)
+        .mockResolvedValueOnce({ _sum: { amount: new Prisma.Decimal(500) } });
+
+      const result = await service.findBudgetInsights(7);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        ...mockBudgets[0],
+        spent: new Prisma.Decimal(4000),
+        remaining: new Prisma.Decimal(1000),
+        usagePercentage: 80,
+      });
+      expect(result[1]).toEqual({
+        ...mockBudgets[1],
+        spent: new Prisma.Decimal(500),
+        remaining: new Prisma.Decimal(500),
+        usagePercentage: 50,
+      });
+    });
+
+    it('should return empty array when user has no budgets for current month/year', async () => {
+      prisma.budget.findMany.mockResolvedValue([]);
+
+      const result = await service.findBudgetInsights(7);
+
+      expect(result).toEqual([]);
+      expect(prisma.budget.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 7,
+          }),
+        }),
+      );
+    });
+
+    it('should handle budget with no transactions (0% usage)', async () => {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const mockBudget = {
+        id: 1,
+        month: currentMonth,
+        year: currentYear,
+        limitAmount: new Prisma.Decimal(2000),
+        categoryId: 10,
+        userId: 7,
+        category: { id: 10, name: 'Travel', type: 'expense' },
+      };
+
+      prisma.budget.findMany.mockResolvedValue([mockBudget]);
+      prisma.transaction.aggregate.mockResolvedValue({ _sum: { amount: null } });
+
+      const result = await service.findBudgetInsights(7);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        ...mockBudget,
+        spent: new Prisma.Decimal(0),
+        remaining: new Prisma.Decimal(2000),
+        usagePercentage: 0,
+      });
+    });
+
+    it('should handle budget overspending (>100% usage)', async () => {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const mockBudget = {
+        id: 1,
+        month: currentMonth,
+        year: currentYear,
+        limitAmount: new Prisma.Decimal(1000),
+        categoryId: 10,
+        userId: 7,
+        category: { id: 10, name: 'Travel', type: 'expense' },
+      };
+
+      prisma.budget.findMany.mockResolvedValue([mockBudget]);
+      prisma.transaction.aggregate.mockResolvedValue({ _sum: { amount: new Prisma.Decimal(1500) } });
+
+      const result = await service.findBudgetInsights(7);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        ...mockBudget,
+        spent: new Prisma.Decimal(1500),
+        remaining: new Prisma.Decimal(-500),
+        usagePercentage: 150,
+      });
+    });
+
+    it('should exclude transfers from calculation', async () => {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      const mockBudget = {
+        id: 1,
+        month: currentMonth,
+        year: currentYear,
+        limitAmount: new Prisma.Decimal(1000),
+        categoryId: 10,
+        userId: 7,
+        category: { id: 10, name: 'Travel', type: 'expense' },
+      };
+
+      prisma.budget.findMany.mockResolvedValue([mockBudget]);
+      prisma.transaction.aggregate.mockResolvedValue({ _sum: { amount: new Prisma.Decimal(500) } });
+
+      const result = await service.findBudgetInsights(7);
+
+      // Verify that the query filtered for 'income' and 'expense' types only
+      expect(prisma.transaction.aggregate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            type: { in: ['income', 'expense'] },
+          }),
+        }),
+      );
+
+      expect(result[0].usagePercentage).toBe(50);
+    });
   });
 });
