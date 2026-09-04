@@ -1,19 +1,17 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { AccountsModule } from './accounts/accounts.module';
-import { CategoriesModule } from './categories/categories.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { LoggerMiddleware } from './common/middleware/logger.middleware';
-import { BudgetsModule } from './budgets/budgets.module';
-import { HealthController } from './health/health.controller';
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { PrismaModule } from "./prisma/prisma.module";
+import { AuthModule } from "./auth/auth.module";
+import { UsersModule } from "./users/users.module";
+import { AccountsModule } from "./accounts/accounts.module";
+import { CategoriesModule } from "./categories/categories.module";
+import { TransactionsModule } from "./transactions/transactions.module";
+import { LoggerMiddleware } from "./common/middleware/logger.middleware";
+import { BudgetsModule } from "./budgets/budgets.module";
+import { HealthController } from "./health/health.controller";
 
 @Module({
-  controllers: [
-    HealthController,
-  ],
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
@@ -28,6 +26,6 @@ import { HealthController } from './health/health.controller';
 export class AppModule implements NestModule {
   // Register the custom logging middleware globally for every route.
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes("*");
   }
 }
