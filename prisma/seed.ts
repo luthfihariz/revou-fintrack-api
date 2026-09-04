@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Clean slate (respect FK order).
-  await prisma.budget.deleteMany();
   await prisma.transaction.deleteMany();
   await prisma.category.deleteMany();
   await prisma.account.deleteMany();
@@ -94,16 +93,7 @@ async function main() {
     ],
   });
 
-  // Budgets (stretch goal)
-  await prisma.budget.createMany({
-    data: [
-      { userId: alice.id, categoryId: groceries.id, month: '2026-02', limitAmount: 1000000 },
-      { userId: budi.id, categoryId: dining.id, month: '2026-02', limitAmount: 500000 },
-      { userId: citra.id, categoryId: groceries.id, month: '2026-02', limitAmount: 600000 },
-    ],
-  });
-
-  console.log('Seed complete: 3 users, 6 accounts, 7 categories, 22 transactions, 3 budgets.');
+  console.log('Seed complete: 3 users, 6 accounts, 7 categories, 22 transactions.');
 }
 
 main()

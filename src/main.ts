@@ -1,10 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import helmet from 'helmet';
-import { AppModule } from './app.module';
+import { NestFactory } from "@nestjs/core";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import helmet from "helmet";
+import { AppModule } from "./app.module";
 
 async function bootstrap() {
+  const logger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
@@ -12,13 +13,13 @@ async function bootstrap() {
   app.use(helmet());
 
   // Explicit CORS (never wide-open by accident).
-  const origins = (config.get<string>('CORS_ORIGINS') ?? '')
-    .split(',')
+  const origins = (config.get<string>("CORS_ORIGINS") ?? "")
+    .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
   app.enableCors({
     origin: origins.length > 0 ? origins : false,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   });
 
@@ -32,8 +33,8 @@ async function bootstrap() {
     }),
   );
 
-  const port = config.get<number>('PORT') ?? 3000;
+  const port = config.get<number>("PORT") ?? 3000;
   await app.listen(port);
-  console.log(`FinTrack API listening on http://localhost:${port}`);
+  logger.log(`FinTrack API listening on http://localhost:${port}`);
 }
 bootstrap();

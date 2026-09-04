@@ -275,6 +275,14 @@ Validation error (negative amount → `400`):
 curl http://localhost:3000/transactions -H "Authorization: Bearer $TOKEN"
 ```
 
+Optional inclusive filters can be combined: `categoryId`, `type`, `minAmount`,
+`maxAmount`, `fromDate`, and `toDate`.
+
+```bash
+curl "http://localhost:3000/transactions?categoryId=3&type=expense&minAmount=50000&maxAmount=500000&fromDate=2026-02-01&toDate=2026-02-28" \\
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ```json
 [ { "id": 23, "accountId": 1, "categoryId": 3, "type": "expense", "amount": "75000", "description": "Snacks", "transactionDate": "2026-02-21T00:00:00.000Z", "category": { "id": 3, "name": "Groceries", "type": "expense" } } ]
 ```
